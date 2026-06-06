@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { testDbConnection } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import forgPassword  from './routes/forgPassword.js';
 
 
 // Inicializa la configuración de dotenv
@@ -29,6 +30,8 @@ testDbConnection();
     app.use('/api/auth', authRoutes);
 
 
+// * ========================================= RUTAS RECUPERACIÓN DE CONTRASEÑA ===================================== */
+    app.use('/api/auth', forgPassword);
 
 
 // Ruta de prueba simple para verificar que el servidor está funcionando
