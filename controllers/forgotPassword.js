@@ -1,7 +1,7 @@
 import { pool as db } from '../config/db.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-
+import { transporter } from '../config/mailer.js';
 
 
 // Solicitar recuperación.
@@ -28,18 +28,46 @@ export const forgotPassword = async (req, res) => {
         // Fecha de expiracion.
         const expiresAt = new Date();
         // Token valido durante 1 hora.
-        expiresAt.setHours(expiresAt.getHours() + 1);
+        expiresAt.setMinutes(expiresAt.getMinutes() + 10);
         // Guardar en MYSQL
         await db.query(
             'INSERT INTO password_reset_tokens (user_Id, token, expires_at) VALUES (?,?,?)',
             [userId, tokenHash, expiresAt]
         );
         // Crea el link de recuperación.
-        const linkDeRecuperacion = `http://purecinemafeel.com/reset-password?token=${tokenReal}`;
+        const resetUrl = `http://localhost:5173/authV2?token=${tokenReal}`;
         // Simulación del envío.
-        console.log(`📧 Enlace: ${linkDeRecuperacion}`);
-        // Respuesta final.
-        return res.json({ success: true, message: "Token enviado al correo" })
+        await transporter.sendMail ({
+            from: '"Pure Cinema Feel" onboarding@resend.dev',
+            to: correo_electronico, // Correo electrónico del usuario que recupera
+            subject: "🔄 Restablecer Acceso - Pure Cinema Feel",
+            html:`
+                <div style="background-color: #0b0c10; color: #ffffff; padding: 40px; font-family: 'Montserrat', sans-serif; text-align: center; border-radius: 8px; max-width: 500px; margin: 0 auto; border: 1px solid #1f2833;">
+                    <h1 style="color: #00ffff; font-size: 26px; text-shadow: 0 0 10px #00ffff; letter-spacing: 2px;">PURE CINEMA FEEL</h1>
+                    <div style="height: 2px; background: linear-gradient(to right, #ff00ff, #00ffff); margin: 20px 0 30px 0;"></div>
+                    
+                    <p style="color: #c5c6c7; font-size: 16px; line-height: 1.6;">
+                        Has solicitado restablecer el acceso a tu cuenta cibernética cinematográfica.
+                    </p>
+                    <p style="color: #ff00ff; font-weight: bold; margin-top: 15px;">Este enlace vencerá estrictamente en 10 minutos.</p>
+                    
+                    <div style="margin: 35px 0;">
+                        <a href="${resetUrl}" style="background-color: #0b0c10; border: 2px solid #00ffff; color: #00ffff; padding: 12px 24px; font-size: 14px; font-weight: bold; text-decoration: none; border-radius: 4px; box-shadow: 0 0 15px #00ffff; display: inline-block;">
+                            RESTABLECER CONTRASEÑA
+                        </a>
+                    </div>
+                    
+                    <p style="color: #45f3ff; font-size: 12px; margin-top: 40px; opacity: 0.6;">
+                        Si tú no solicitaste este cambio, ignora este mensaje con seguridad.
+                    </p>
+                </div>
+
+            `
+        });
+
+        console.log(`📬 Correo real enviado vía Nodemailer a: ${correo_electronico}`);
+        // Repsuesta final para el frontend.
+        return res.json({ success: true, message: "Token enviado al correo" });
 
 
 
@@ -74,7 +102,7 @@ export const resetPassword = async (req, res) => {
             [receivedHash]
         );
 
-        // Verificar si existe.
+        // Verificar si existe en la base de datos.
         if (tokenRow.length === 0) {
             return res.status(400).json({ success: false, message: "Token invalido o expirado." });
         }
