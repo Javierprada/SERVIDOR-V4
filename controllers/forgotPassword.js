@@ -128,3 +128,34 @@ export const resetPassword = async (req, res) => {
         return res.status(500).json({ success: false, message: "Error al cambiar la contraseña" });
     }
 };
+
+
+// Función para verificar si el token sigue siendo util en el correo del usuario.
+export const validateResetToken = async (req, res) => {
+    const { token } = req.body;
+
+    if (!token) {
+        return res.status(400).json({success: false, message: "Token Ausente."});
+    }
+
+    try {
+        // Calculamos el HASH
+        const receivedHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        // Buscamos si existe y si no ha sido usado (used = 0) y no ha expirado
+        const [tokenRow] = await db.query(
+            'SELECT * FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > NOW()',
+            [receivedHash] 
+        );
+
+        if (tokenRow.length === 0) {
+            // 🛑 AQUÍ DETENEMOS AL INTRUSO: Token usado, falso o vencido.
+            return res.status(400).json({ success: false, message: "El enlace ya no esta disponible o el tiempo de ejecución a expirado." });
+        }
+
+        // Si paso la prueba el token es totalmente válido
+    }catch (error) {
+        console.error(error)
+        return res.status(500).json({ success: false, message: "Error interno al validar el token." })
+    }
+};
