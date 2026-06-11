@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { testDbConnection } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import forgPassword  from './routes/forgPassword.js';
+import movieRoutes from './routes/movieRoutes.js';
 
 
 // Inicializa la configuración de dotenv
@@ -32,6 +33,20 @@ testDbConnection();
 
 // * ========================================= RUTAS RECUPERACIÓN DE CONTRASEÑA ===================================== */
     app.use('/api/auth', forgPassword);
+    
+// * =========================================    RUTAS DE RECEPCIÓN DE MEDIA   ====================================== */
+
+    app.use('/api/injection', movieRoutes);
+
+
+
+
+
+
+
+
+
+
 
 
 // Ruta de prueba simple para verificar que el servidor está funcionando
