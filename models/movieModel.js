@@ -1,4 +1,4 @@
-import { db } from '../config/db.js'; // Asegúrate de importar tu conexión a MySQL
+import { pool } from '../config/db.js'; // Asegúrate de importar tu conexión a MySQL
 
 const Movie = {
     // El modelo se encarga exclusivamente de la operación en la Base de Datos
@@ -28,9 +28,28 @@ const Movie = {
         ];
 
         // Ejecuta la query y retorna el resultado (donde viene el insertId)
-        const [result] = await db.query(query, values);
+        const [result] = await pool.query(query, values);
         return result;
-    }
+    },
+
+
+
+    getAll: async () => {
+            const query = 'SELECT id, title, description, genre, director, actors, release_date, trailer_url, poster_url, video_url FROM movies';
+
+            const [rows] = await pool.query(query);
+            return rows;
+    },
+
+
+
+
+
+
+
 };
+
+
+
 
 export default Movie;

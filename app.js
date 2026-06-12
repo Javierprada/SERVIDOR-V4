@@ -38,8 +38,9 @@ testDbConnection();
 
     app.use('/api/injection', movieRoutes);
 
+// * =====================================  RUTAS PARA OBTENER PELICULAS DESDE UI  =================================== */
 
-
+    app.use('/api/get', movieRoutes);
 
 
 
